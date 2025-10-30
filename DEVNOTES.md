@@ -1,3 +1,15 @@
+```yaml
+HttpApiGateway:
+  Type: AWS::Serverless::HttpApi
+  Properties:
+    CorsConfiguration:
+      AllowOrigins: ['*']
+      AllowMethods: ['GET','POST','PUT','DELETE','OPTIONS']
+      AllowHeaders: ['*']
+
+```
+
+
 # ⚾ Serverless Baseball Rookie Cards API (Japanese MLB Players)
 
 A step-by-step roadmap for evolving the AWS SAM Hello World project into a professional serverless API featuring curated MLB rookie cards of Japanese players — all graded PSA 10.
