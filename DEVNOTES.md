@@ -1,14 +1,21 @@
 ```yaml
-HttpApiGateway:
-  Type: AWS::Serverless::HttpApi
-  Properties:
-    CorsConfiguration:
-      AllowOrigins: ['*']
-      AllowMethods: ['GET','POST','PUT','DELETE','OPTIONS']
-      AllowHeaders: ['*']
+Outputs:
+  # 3) REPLACE: REST output with HTTP API output (no /Prod suffix)
+  ApiEndpoint:
+    Description: HTTP API base URL ($default stage)
+    Value: !Sub "https://${HttpApiGateway}.execute-api.${AWS::Region}.${AWS::URLSuffix}"
+  HelloWorldFunction:
+    Description: Hello World Lambda Function ARN
+    Value: !GetAtt HelloWorldFunction.Arn
+  HelloWorldFunctionIamRole:
+    Description: Implicit IAM Role created for Hello World function
+    Value: !GetAtt HelloWorldFunctionRole.Arn
 
 ```
 
+```bash
+ggshield secret scan path . --recursive
+```
 
 # ⚾ Serverless Baseball Rookie Cards API (Japanese MLB Players)
 
@@ -28,13 +35,13 @@ A step-by-step roadmap for evolving the AWS SAM Hello World project into a profe
 ## 🧩 Phase 2 — Convert to HTTP API + DynamoDB Setup
 **Goal:** Replace REST API with an HTTP API and add a DynamoDB table to store rookie card data.
 
-- [ ] Switch event type from REST to HTTP API
-- [ ] Add DynamoDB table (`CardsTable`) with partition and sort keys  
+- [x] Switch event type from REST to HTTP API
+- [x] Add DynamoDB table (`CardsTable`) with partition and sort keys  
   - PK: `player#<PlayerName>`  
   - SK: `card#<Year>#<Brand>#<Set>#<CardNo>#PSA10`
-- [ ] Add DynamoDB environment variable and CRUD policy
-- [ ] Add Outputs for API URL and table name
-- [ ] Validate and build successfully
+- [x] Add DynamoDB environment variable and CRUD policy
+- [x] Add Outputs for API URL and table name
+- [x] Validate and build successfully
 - [ ] Commit: conversion to HTTP API + DynamoDB setup
 
 ---
