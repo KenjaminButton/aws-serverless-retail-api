@@ -2,15 +2,23 @@ AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
   serverless-retail-api
-
-  Phase 2 — HTTP API + DynamoDB Setup
+  Phase 3 — HTTP API + DynamoDB + Cognito Auth
 
 Globals:
   Function:
     Timeout: 3
 
+Parameters:
+  CognitoUserPoolId:
+    Type: String
+    Description: "Cognito User Pool ID (e.g., us-west-1_ABC123xyz)"
+  CognitoAppClientId:
+    Type: String
+    Description: "Cognito App Client ID (used as JWT audience)"
+
 Resources:
 
+  # --- HTTP API with built-in Cognito Authorizer ---
   HttpApiGateway:
     Type: AWS::Serverless::HttpApi
     Properties:
@@ -18,7 +26,16 @@ Resources:
         AllowOrigins: ['*']
         AllowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
         AllowHeaders: ['*']
+      Auth:
+        Authorizers:
+          CognitoAuthorizer:
+            JwtConfiguration:
+              issuer: !Sub "https://cognito-idp.${AWS::Region}.amazonaws.com/${CognitoUserPoolId}"
+              audience:
+                - !Ref CognitoAppClientId
+            IdentitySource: "$request.header.Authorization"
 
+  # --- DynamoDB Table ---
   CardsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -35,7 +52,7 @@ Resources:
         - AttributeName: SK
           KeyType: RANGE
 
-
+  # --- Lambda Function (HelloWorld) ---
   HelloWorldFunction:
     Type: AWS::Serverless::Function
     Properties:
@@ -56,6 +73,15 @@ Resources:
             ApiId: !Ref HttpApiGateway
             Path: /hello
             Method: GET
+        SeedCards:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApiGateway
+            Path: /cards/seed
+            Method: POST
+            Auth:
+              Authorizer: CognitoAuthorizer
+      CodeUri: HelloWorldFunction
 
 Outputs:
   ApiEndpoint:

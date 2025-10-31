@@ -42,15 +42,15 @@ A step-by-step roadmap for evolving the AWS SAM Hello World project into a profe
 - [x] Add DynamoDB environment variable and CRUD policy
 - [x] Add Outputs for API URL and table name
 - [x] Validate and build successfully
-- [ ] Commit: conversion to HTTP API + DynamoDB setup
+- [x] Commit: conversion to HTTP API + DynamoDB setup
 
 ---
 
 ## 🔐 Phase 3 — JWT Authorization for Protected Routes
 **Goal:** Secure admin actions (like seeding data) with JWT authentication.
 
-- [ ] Select an identity provider (Amazon Cognito or external OIDC)
-- [ ] Add a JWT authorizer to the HTTP API in template
+- [x] Select an identity provider (Amazon Cognito or external OIDC)
+- [X] Add a JWT authorizer to the HTTP API in template
 - [ ] Protect the `POST /cards/seed` route (admin-only)
 - [ ] Keep all `GET` routes public
 - [ ] Commit: added JWT authorizer and secure routes
