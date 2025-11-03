@@ -61,17 +61,17 @@ A step-by-step roadmap for evolving the AWS SAM Hello World project into a profe
 **Goal:** Replace hello world handler with clean API routing logic.
 
 **Public routes**
-- [ ] `/cards` → list all rookie cards  
-- [ ] `/cards/{cardId}` → details of one card  
-- [ ] `/cards/top3?player=<name>` → top three cards by price (PSA 10 only)
+- [x] `/cards` → list all rookie cards  
+- [x] `/cards/{cardId}` → details of one card  
+- [x] `/cards/top3?player=<name>` → top three cards by price (PSA 10 only)
 
 **Protected route**
-- [ ] `/cards/seed` → write curated dataset (admin-only)
+- [x] `/cards/seed` → write curated dataset (admin-only)
 
 **Implementation**
-- [ ] Organize handler into routing functions  
-- [ ] Add helper for DynamoDB queries and item mapping  
-- [ ] Commit: implemented Lambda routing for baseball cards API
+- [x] Organize handler into routing functions  
+- [x] Add helper for DynamoDB queries and item mapping  
+- [x] Commit: implemented Lambda routing for baseball cards API
 
 ---
 
