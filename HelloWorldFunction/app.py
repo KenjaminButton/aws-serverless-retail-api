@@ -126,7 +126,9 @@ def route_seed_cards(event: dict):
     Protected by API Gateway Cognito Authorizer at the route mapping.
     Writes a tiny curated dataset (PSA10 only). Overwrites by PK/SK.
     """
+
     seed_items = [
+        # Shohei Ohtani — 2018 Bowman Chrome
         {
             "PK": "player#Shohei Ohtani",
             "SK": "card#2018#Bowman Chrome#Prospects#%231#PSA10".replace("%23", "#"),
@@ -139,31 +141,134 @@ def route_seed_cards(event: dict):
             "price": Decimal("1599.99"),
             "currency": "USD",
         },
+
+        # Ichiro Suzuki — 2001 Topps
         {
             "PK": "player#Ichiro Suzuki",
-            "SK": "card#2001#Topps Chrome#Base#%23596#PSA10".replace("%23", "#"),
+            "SK": "card#2001#Topps#Base#%23596#PSA10".replace("%23", "#"),
             "player": "Ichiro Suzuki",
             "year": 2001,
-            "brand": "Topps Chrome",
+            "brand": "Topps",
             "set": "Base",
             "cardNo": "#596",
             "grade": "PSA10",
             "price": Decimal("799.00"),
             "currency": "USD",
         },
+
+        # Hideki Matsui — 2003 Topps
         {
             "PK": "player#Hideki Matsui",
-            "SK": "card#2003#Topps Chrome#Base#%23111#PSA10".replace("%23", "#"),
+            "SK": "card#2003#Topps#Base#%23111#PSA10".replace("%23", "#"),
             "player": "Hideki Matsui",
             "year": 2003,
-            "brand": "Topps Chrome",
+            "brand": "Topps",
             "set": "Base",
             "cardNo": "#111",
             "grade": "PSA10",
             "price": Decimal("249.50"),
             "currency": "USD",
         },
+
+        # Hideo Nomo — 1995 Topps
+        {
+            "PK": "player#Hideo Nomo",
+            "SK": "card#1995#Topps#Base#%232#PSA10".replace("%23", "#"),
+            "player": "Hideo Nomo",
+            "year": 1995,
+            "brand": "Topps",
+            "set": "Base",
+            "cardNo": "#2",
+            "grade": "PSA10",
+            "price": Decimal("199.00"),
+            "currency": "USD",
+        },
+
+        # Daisuke Matsuzaka — 2007 Bowman Chrome
+        {
+            "PK": "player#Daisuke Matsuzaka",
+            "SK": "card#2007#Bowman Chrome#Base#%23111#PSA10".replace("%23", "#"),
+            "player": "Daisuke Matsuzaka",
+            "year": 2007,
+            "brand": "Bowman Chrome",
+            "set": "Base",
+            "cardNo": "#111",
+            "grade": "PSA10",
+            "price": Decimal("145.00"),
+            "currency": "USD",
+        },
+
+        # Yu Darvish — 2012 Topps
+        {
+            "PK": "player#Yu Darvish",
+            "SK": "card#2012#Topps#Base#%23561#PSA10".replace("%23", "#"),
+            "player": "Yu Darvish",
+            "year": 2012,
+            "brand": "Topps",
+            "set": "Base",
+            "cardNo": "#561",
+            "grade": "PSA10",
+            "price": Decimal("175.00"),
+            "currency": "USD",
+        },
+
+        # Masahiro Tanaka — 2014 Topps
+        {
+            "PK": "player#Masahiro Tanaka",
+            "SK": "card#2014#Topps#Base#%231#PSA10".replace("%23", "#"),
+            "player": "Masahiro Tanaka",
+            "year": 2014,
+            "brand": "Topps",
+            "set": "Base",
+            "cardNo": "#1",
+            "grade": "PSA10",
+            "price": Decimal("120.00"),
+            "currency": "USD",
+        },
+
+        # Seiya Suzuki — 2022 Topps
+        {
+            "PK": "player#Seiya Suzuki",
+            "SK": "card#2022#Topps#Base#%23311#PSA10".replace("%23", "#"),
+            "player": "Seiya Suzuki",
+            "year": 2022,
+            "brand": "Topps",
+            "set": "Base",
+            "cardNo": "#311",
+            "grade": "PSA10",
+            "price": Decimal("110.00"),
+            "currency": "USD",
+        },
+
+        # Kodai Senga — 2023 Topps
+        {
+            "PK": "player#Kodai Senga",
+            "SK": "card#2023#Topps#Base#%23163#PSA10".replace("%23", "#"),
+            "player": "Kodai Senga",
+            "year": 2023,
+            "brand": "Topps",
+            "set": "Base",
+            "cardNo": "#163",
+            "grade": "PSA10",
+            "price": Decimal("135.00"),
+            "currency": "USD",
+        },
+
+        # Yoshinobu Yamamoto — 2024 Topps
+        {
+            "PK": "player#Yoshinobu Yamamoto",
+            "SK": "card#2024#Topps#Base#%2399#PSA10".replace("%23", "#"),
+            "player": "Yoshinobu Yamamoto",
+            "year": 2024,
+            "brand": "Topps",
+            "set": "Base",
+            "cardNo": "#99",
+            "grade": "PSA10",
+            "price": Decimal("299.00"),
+            "currency": "USD",
+        },
     ]
+
 
     table = _table_ref()
     with table.batch_writer(overwrite_by_pkeys=["PK", "SK"]) as bw:
