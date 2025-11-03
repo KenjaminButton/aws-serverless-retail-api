@@ -51,9 +51,9 @@ A step-by-step roadmap for evolving the AWS SAM Hello World project into a profe
 
 - [x] Select an identity provider (Amazon Cognito or external OIDC)
 - [X] Add a JWT authorizer to the HTTP API in template
-- [ ] Protect the `POST /cards/seed` route (admin-only)
-- [ ] Keep all `GET` routes public
-- [ ] Commit: added JWT authorizer and secure routes
+- [x] Protect the `POST /cards/seed` route (admin-only)
+- [x] Keep all `GET` routes public
+- [x] Commit: added JWT authorizer and secure routes
 
 ---
 

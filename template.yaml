@@ -1,41 +1,63 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: >
-  serverless-retail-api
-  Phase 3 — HTTP API + DynamoDB + Cognito Auth
+Description: serverless-retail-api — Phase 4 (HTTP API + DDB + Cognito authorizer via IaC)
 
 Globals:
   Function:
-    Timeout: 3
-
-Parameters:
-  CognitoUserPoolId:
-    Type: String
-    Description: "Cognito User Pool ID (e.g., us-west-1_ABC123xyz)"
-  CognitoAppClientId:
-    Type: String
-    Description: "Cognito App Client ID (used as JWT audience)"
+    Timeout: 6
+    Runtime: python3.13
+    Environment:
+      Variables:
+        CARDS_TABLE: !Ref CardsTable
 
 Resources:
 
-  # --- HTTP API with built-in Cognito Authorizer ---
+  # --- Cognito created by this stack (no external IDs) ---
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub "${AWS::StackName}-user-pool"
+      AutoVerifiedAttributes: [ email ]
+      UsernameAttributes: [ email ]
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+          RequireUppercase: true
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref UserPool
+      ClientName: !Sub "${AWS::StackName}-app-client"
+      GenerateSecret: false
+      PreventUserExistenceErrors: ENABLED
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_SRP_AUTH
+
+  # --- HTTP API with Cognito authorizer (wired to resources above) ---
   HttpApiGateway:
     Type: AWS::Serverless::HttpApi
     Properties:
+      StageName: $default
       CorsConfiguration:
         AllowOrigins: ['*']
-        AllowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+        AllowMethods: ['GET','POST','PUT','DELETE','OPTIONS']
         AllowHeaders: ['*']
       Auth:
         Authorizers:
           CognitoAuthorizer:
             JwtConfiguration:
-              issuer: !Sub "https://cognito-idp.${AWS::Region}.amazonaws.com/${CognitoUserPoolId}"
+              issuer: !Sub "https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}"
               audience:
-                - !Ref CognitoAppClientId
+                - !Ref UserPoolClient
             IdentitySource: "$request.header.Authorization"
 
-  # --- DynamoDB Table ---
+  # --- DynamoDB Table (unchanged) ---
   CardsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -52,26 +74,40 @@ Resources:
         - AttributeName: SK
           KeyType: RANGE
 
-  # --- Lambda Function (HelloWorld) ---
+  # --- Lambda router (your code is in HelloWorldFunction/app.py) ---
   HelloWorldFunction:
     Type: AWS::Serverless::Function
     Properties:
+      CodeUri: HelloWorldFunction
       Handler: app.lambda_handler
-      Runtime: python3.13
-      Architectures:
-        - x86_64
+      Architectures: [ x86_64 ]
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref CardsTable
-      Environment:
-        Variables:
-          CARDS_TABLE: !Ref CardsTable
       Events:
         HelloWorld:
           Type: HttpApi
           Properties:
             ApiId: !Ref HttpApiGateway
             Path: /hello
+            Method: GET
+        GetCards:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApiGateway
+            Path: /cards
+            Method: GET
+        GetCardById:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApiGateway
+            Path: /cards/{cardId}
+            Method: GET
+        GetTop3:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApiGateway
+            Path: /cards/top3
             Method: GET
         SeedCards:
           Type: HttpApi
@@ -81,15 +117,14 @@ Resources:
             Method: POST
             Auth:
               Authorizer: CognitoAuthorizer
-      CodeUri: HelloWorldFunction
 
 Outputs:
   ApiEndpoint:
     Description: HTTP API base URL ($default stage)
     Value: !Sub "https://${HttpApiGateway}.execute-api.${AWS::Region}.amazonaws.com"
-  HelloWorldFunction:
-    Description: Hello World Lambda Function ARN
-    Value: !GetAtt HelloWorldFunction.Arn
-  HelloWorldFunctionIamRole:
-    Description: Implicit IAM Role created for Hello World function
-    Value: !GetAtt HelloWorldFunctionRole.Arn
+  CognitoUserPoolId:
+    Description: Created Cognito User Pool ID
+    Value: !Ref UserPool
+  CognitoAppClientId:
+    Description: Created Cognito App Client ID
+    Value: !Ref UserPoolClient
