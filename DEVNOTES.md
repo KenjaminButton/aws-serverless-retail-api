@@ -78,7 +78,7 @@ A step-by-step roadmap for evolving the AWS SAM Hello World project into a profe
 ## 🧠 Phase 5 — Curated Data Seeding
 **Goal:** Add real mock data for the Japanese MLB rookie cards (PSA 10 only).
 
-- [ ] Create curated seed data:
+- [x] Create curated seed data:
   - Shohei Ohtani — 2018 Bowman Chrome  
   - Ichiro Suzuki — 2001 Topps  
   - Hideki Matsui — 2003 Topps  
@@ -89,8 +89,8 @@ A step-by-step roadmap for evolving the AWS SAM Hello World project into a profe
   - Seiya Suzuki — 2022 Topps  
   - Kodai Senga — 2023 Topps  
   - Yoshinobu Yamamoto — 2024 Topps
-- [ ] Ensure seeding is idempotent (no duplicates)
-- [ ] Commit: add curated Japanese MLB rookie card dataset
+- [x] Ensure seeding is idempotent (no duplicates)
+- [x] Commit: add curated Japanese MLB rookie card dataset
 
 ---
 
