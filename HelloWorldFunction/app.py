@@ -6,6 +6,8 @@ from decimal import Decimal
 import boto3
 from boto3.dynamodb.conditions import Key
 
+from logging_utils import log_json, with_request_metrics  # <-- add this
+
 # --------------------------
 # Response + event utilities
 # --------------------------
@@ -88,7 +90,7 @@ def route_hello():
 def route_get_all_cards():
     table = _table_ref()
     items = []
-    kwargs = {}
+    kwargs = {"ReturnConsumedCapacity": "TOTAL"}  # optional: get RC
     while True:
         out = table.scan(**kwargs)
         items.extend(out.get("Items", []))
@@ -96,30 +98,37 @@ def route_get_all_cards():
         if not last:
             break
         kwargs["ExclusiveStartKey"] = last
+    log_json(event="cards_scan", count=len(items))
     return _resp(200, _decimal_to_native(items))
 
 def route_get_card_by_id(card_id: str):
     try:
         pk, sk = _card_id_to_keys(card_id)
     except ValueError as e:
+        log_json(level="WARN", event="bad_card_id", cardId=card_id, error=str(e))  # <-- add
         return _resp(400, {"message": str(e)})
     table = _table_ref()
-    out = table.get_item(Key={"PK": pk, "SK": sk})
+    out = table.get_item(Key={"PK": pk, "SK": sk}, ReturnConsumedCapacity="TOTAL")
     item = out.get("Item")
     if not item:
+        log_json(event="card_not_found", cardId=card_id)  # <-- add
         return _resp(404, {"message": "Card not found"})
+    log_json(event="card_hit", cardId=card_id)  # <-- add
     return _resp(200, _decimal_to_native(item))
+
 
 def route_get_top3_by_player(player: str):
     if not player:
         return _resp(400, {"message": "Missing required query param 'player'"})
     table = _table_ref()
     pk = f"player#{player}"
-    out = table.query(KeyConditionExpression=Key("PK").eq(pk))
+    out = table.query(KeyConditionExpression=Key("PK").eq(pk), ReturnConsumedCapacity="TOTAL")
     items = out.get("Items", [])
-    # Sort by price (Decimal) descending, then take top 3
     items_sorted = sorted(items, key=lambda x: x.get("price", Decimal("0")), reverse=True)
-    return _resp(200, _decimal_to_native(items_sorted[:3]))
+    top3 = items_sorted[:3]
+    log_json(event="top3_query", player=player, matched=len(items), returned=len(top3))  # <-- add
+    return _resp(200, _decimal_to_native(top3))
+
 
 def route_seed_cards(event: dict):
     """
@@ -281,12 +290,15 @@ def route_seed_cards(event: dict):
 # Router
 # --------------------------
 
+@with_request_metrics                     # <-- add
 def lambda_handler(event, context):
     method, raw_path = _parse_method_path(event)
     qs = _qs(event)
     params = _path_params(event)
 
     try:
+        log_json(event="route_hit", method=method, path=raw_path)  # <-- add
+
         # Keep /hello online for sanity checks
         if method == "GET" and raw_path == "/hello":
             return route_hello()
@@ -296,7 +308,6 @@ def lambda_handler(event, context):
             return route_get_all_cards()
 
         if method == "GET" and raw_path.startswith("/cards/") and params and "cardId" in params:
-            # cardId may be URL-encoded; decode it
             encoded = params["cardId"]
             card_id = urllib.parse.unquote(encoded)
             return route_get_card_by_id(card_id)
@@ -309,8 +320,10 @@ def lambda_handler(event, context):
         if method == "POST" and raw_path == "/cards/seed":
             return route_seed_cards(event)
 
+        log_json(level="WARN", event="route_miss", method=method, path=raw_path)  # <-- add
         return _resp(404, {"message": "Not found"})
 
     except Exception as e:
-        # Surface a simple error; keep internals private
+        log_json(level="ERROR", event="unhandled_exception", error=str(e))  # <-- add
         return _resp(500, {"message": "Internal error", "detail": str(e)})
+

@@ -20,7 +20,7 @@ resolve_s3 = true
 s3_prefix = "serverless-retail-api"
 profile = "serverless-retail-api-user"
 image_repositories = []
-parameter_overrides = "CognitoUserPoolId=\"us-west-1_kLgBWvAfk\" CognitoAppClientId=\"3nbcrbbp4mr9gonck5lk361n6\""
+parameter_overrides = "AlarmEmail=\"kennethpchang@gmail.com\""
 
 
 [default.package.parameters]

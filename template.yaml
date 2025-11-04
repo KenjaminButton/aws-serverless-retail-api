@@ -1,6 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: serverless-retail-api — Phase 4 (HTTP API + DDB + Cognito authorizer via IaC)
+Description: serverless-retail-api — Phase 7 (HTTP API + DDB + Cognito + API Access Logs)
+
+Parameters:
+  AlarmEmail:
+    Type: String
+    Description: Email address to receive CloudWatch alarm notifications
 
 Globals:
   Function:
@@ -12,13 +17,65 @@ Globals:
 
 Resources:
 
-  # --- Cognito created by this stack (no external IDs) ---
+  # --------------------------------------------------------------------------
+  # CloudWatch Logs group for API Gateway access logs
+  # --------------------------------------------------------------------------
+  HttpApiAccessLogs:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/apigw/${AWS::StackName}-http"
+      RetentionInDays: 14
+
+  # --------------------------------------------------------------------------
+  # SNS topic + email subscription for alarm notifications
+  # --------------------------------------------------------------------------
+  NotificationTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub "${AWS::StackName}-alerts"
+
+  NotificationSubscriptionEmail:
+    Type: AWS::SNS::Subscription
+    Properties:
+      TopicArn: !Ref NotificationTopic
+      Protocol: email
+      Endpoint: !Ref AlarmEmail
+
+
+  # --------------------------------------------------------------------------
+  # CloudWatch Alarm — API Gateway 5XX errors (alerts via SNS)
+  # --------------------------------------------------------------------------
+  Api5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-ApiGateway-5XXError"
+      AlarmDescription: Triggers when API Gateway returns >=1 5XX in 5 minutes on $default stage
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Statistic: Sum
+      Period: 300              # 5 minutes
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      Dimensions:
+        - Name: ApiId
+          Value: !Ref HttpApiGateway     # resolves to your API ID (e.g., mzqly42g8g)
+        - Name: Stage
+          Value: $default
+      AlarmActions:
+        - !Ref NotificationTopic         # send to the SNS topic you created
+
+
+  # --------------------------------------------------------------------------
+  # Cognito resources for JWT authorizer
+  # --------------------------------------------------------------------------
   UserPool:
     Type: AWS::Cognito::UserPool
     Properties:
       UserPoolName: !Sub "${AWS::StackName}-user-pool"
-      AutoVerifiedAttributes: [ email ]
-      UsernameAttributes: [ email ]
+      AutoVerifiedAttributes: [email]
+      UsernameAttributes: [email]
       Policies:
         PasswordPolicy:
           MinimumLength: 8
@@ -39,11 +96,16 @@ Resources:
         - ALLOW_REFRESH_TOKEN_AUTH
         - ALLOW_USER_SRP_AUTH
 
-  # --- HTTP API with Cognito authorizer (wired to resources above) ---
+  # --------------------------------------------------------------------------
+  # HTTP API Gateway (Cognito authorizer + access logs)
+  # --------------------------------------------------------------------------
   HttpApiGateway:
     Type: AWS::Serverless::HttpApi
     Properties:
       StageName: $default
+      AccessLogSettings:
+        DestinationArn: !GetAtt HttpApiAccessLogs.Arn
+        Format: '{"requestId":"$context.requestId","ip":"$context.identity.sourceIp","requestTime":"$context.requestTime","httpMethod":"$context.httpMethod","routeKey":"$context.routeKey","path":"$context.path","status":"$context.status","protocol":"$context.protocol","responseLength":"$context.responseLength","integrationError":"$context.integrationErrorMessage","authorizerError":"$context.authorizer.error","jwtPrincipalId":"$context.authorizer.principalId"}'
       CorsConfiguration:
         AllowOrigins: ['*']
         AllowMethods: ['GET','POST','PUT','DELETE','OPTIONS']
@@ -57,7 +119,9 @@ Resources:
                 - !Ref UserPoolClient
             IdentitySource: "$request.header.Authorization"
 
-  # --- DynamoDB Table (unchanged) ---
+  # --------------------------------------------------------------------------
+  # DynamoDB Table
+  # --------------------------------------------------------------------------
   CardsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -74,16 +138,24 @@ Resources:
         - AttributeName: SK
           KeyType: RANGE
 
-  # --- Lambda router (your code is in HelloWorldFunction/app.py) ---
+  # --------------------------------------------------------------------------
+  # Lambda function router (main handler in HelloWorldFunction/app.py)
+  # --------------------------------------------------------------------------
   HelloWorldFunction:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: HelloWorldFunction
       Handler: app.lambda_handler
-      Architectures: [ x86_64 ]
+      Architectures: [x86_64]
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref CardsTable
+      Environment:
+        Variables:
+          CARDS_TABLE: !Ref CardsTable
+          LOG_LEVEL: INFO
+          POWERTOOLS_SERVICE_NAME: cards-api
+      Tracing: Active
       Events:
         HelloWorld:
           Type: HttpApi
@@ -122,9 +194,11 @@ Outputs:
   ApiEndpoint:
     Description: HTTP API base URL ($default stage)
     Value: !Sub "https://${HttpApiGateway}.execute-api.${AWS::Region}.amazonaws.com"
+
   CognitoUserPoolId:
     Description: Created Cognito User Pool ID
     Value: !Ref UserPool
+
   CognitoAppClientId:
     Description: Created Cognito App Client ID
     Value: !Ref UserPoolClient

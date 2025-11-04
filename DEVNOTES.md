@@ -97,22 +97,21 @@ A step-by-step roadmap for evolving the AWS SAM Hello World project into a profe
 ## 🧪 Phase 6 — Testing
 **Goal:** Verify local and cloud functionality.
 
-- [ ] Add lightweight unit tests for key building and routing logic  
-- [ ] Add integration tests for listing and detail endpoints  
-- [ ] Verify data appears correctly in DynamoDB after seeding  
-- [ ] Commit: added unit and integration tests
+- [x] Add lightweight unit tests for key building and routing logic  
+- [x] Add integration tests for listing and detail endpoints  
+- [x] Verify data appears correctly in DynamoDB after seeding  
+- [x] Commit: added unit and integration tests
 
 ---
 
 ## 📊 Phase 7 — Observability & Logging
 **Goal:** Add professional-grade monitoring.
 
-- [ ] Use structured JSON logs (requestId, path, latency, result)  
-- [ ] Confirm logs stream to CloudWatch  
-- [ ] Optionally set simple alarms for 5XX errors  
+- [x] Use structured JSON logs (requestId, path, latency, result)  
+- [x] Confirm logs stream to CloudWatch  
+- [ ] API Gateway access logs 
+- [ ] Set simple alarms for 5XX errors  
 - [ ] Commit: enable structured logging and observability
-
----
 
 ## 🧾 Phase 8 — Documentation & Cost Notes
 **Goal:** Make the README clear and recruiter-ready.
