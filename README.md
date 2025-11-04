@@ -1,136 +1,206 @@
-# ⚾ Serverless Baseball Rookie Cards API (Japanese MLB Players)
+# ⚾️ Serverless Retail Data API — *Baseball Rookie Cards (Japanese MLB Players)*
 
-A step-by-step roadmap for evolving the AWS SAM Hello World project into a professional serverless API featuring curated MLB rookie cards of Japanese players — all graded PSA 10.
-
----
-
-## ✅ Phase 1 — Baseline Hello World (Completed)
-- [x] Initialize project with AWS SAM
-- [x] Run locally and confirm "Hello World" works
-- [x] Deploy successfully to AWS
-- [x] Test the live endpoint (received `{"message":"hello world"}`)
-- [x] Commit baseline: initial working Hello World deployment
+[![AWS SAM](https://img.shields.io/badge/AWS-SAM-orange?logo=amazonaws&logoColor=white)](https://aws.amazon.com/serverless/sam/)
+[![Lambda](https://img.shields.io/badge/Compute-Lambda-blue?logo=awslambda)](https://aws.amazon.com/lambda/)
+[![API Gateway](https://img.shields.io/badge/API-Gateway-purple?logo=amazonaws)](https://aws.amazon.com/api-gateway/)
+[![DynamoDB](https://img.shields.io/badge/Database-DynamoDB-4053D6?logo=amazondynamodb)](https://aws.amazon.com/dynamodb/)
+[![Cognito](https://img.shields.io/badge/Auth-Cognito-8C4FFF?logo=amazoncognito)](https://aws.amazon.com/cognito/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
-## 🧩 Phase 2 — Convert to HTTP API + DynamoDB Setup
-**Goal:** Replace REST API with an HTTP API and add a DynamoDB table to store rookie card data.
+## 🧠 Overview
 
-- [ ] Switch event type from REST to HTTP API
-- [ ] Add DynamoDB table (`CardsTable`) with partition and sort keys  
-  - PK: `player#<PlayerName>`  
-  - SK: `card#<Year>#<Brand>#<Set>#<CardNo>#PSA10`
-- [ ] Add DynamoDB environment variable and CRUD policy
-- [ ] Add Outputs for API URL and table name
-- [ ] Validate and build successfully
-- [ ] Commit: conversion to HTTP API + DynamoDB setup
+A **fully serverless API** built using the **AWS Serverless Application Model (SAM)** — integrating **Lambda**, **HTTP API Gateway**, **DynamoDB**, and **Cognito Authorizer**, with full **CloudWatch monitoring**, **structured logging**, and **SNS email alerts** for operational awareness.
+
+This project tracks **Japanese MLB players’ rookie cards** and demonstrates **real-world AWS skills** across Infrastructure as Code, observability, and secure API design.
 
 ---
 
-## 🔐 Phase 3 — JWT Authorization for Protected Routes
-**Goal:** Secure admin actions (like seeding data) with JWT authentication.
+## 🏗️ Architecture
 
-- [ ] Select an identity provider (Amazon Cognito or external OIDC)
-- [ ] Add a JWT authorizer to the HTTP API in template
-- [ ] Protect the `POST /cards/seed` route (admin-only)
-- [ ] Keep all `GET` routes public
-- [ ] Commit: added JWT authorizer and secure routes
-
----
-
-## ⚙️ Phase 4 — Lambda Routing Logic
-**Goal:** Replace hello world handler with clean API routing logic.
-
-**Public routes**
-- [ ] `/cards` → list all rookie cards  
-- [ ] `/cards/{cardId}` → details of one card  
-- [ ] `/cards/top3?player=<name>` → top three cards by price (PSA 10 only)
-
-**Protected route**
-- [ ] `/cards/seed` → write curated dataset (admin-only)
-
-**Implementation**
-- [ ] Organize handler into routing functions  
-- [ ] Add helper for DynamoDB queries and item mapping  
-- [ ] Commit: implemented Lambda routing for baseball cards API
-
----
-
-## 🧠 Phase 5 — Curated Data Seeding
-**Goal:** Add real mock data for the Japanese MLB rookie cards (PSA 10 only).
-
-- [ ] Create curated seed data:
-  - Shohei Ohtani — 2018 Bowman Chrome  
-  - Ichiro Suzuki — 2001 Topps  
-  - Hideki Matsui — 2003 Topps  
-  - Hideo Nomo — 1995 Topps  
-  - Daisuke Matsuzaka — 2007 Bowman Chrome  
-  - Yu Darvish — 2012 Topps  
-  - Masahiro Tanaka — 2014 Topps  
-  - Seiya Suzuki — 2022 Topps  
-  - Kodai Senga — 2023 Topps  
-  - Yoshinobu Yamamoto — 2024 Topps
-- [ ] Ensure seeding is idempotent (no duplicates)
-- [ ] Commit: add curated Japanese MLB rookie card dataset
+```
+┌───────────────────────────────┐
+│        Amazon Cognito         │
+│   (JWT-based AuthN/AuthZ)     │
+└──────────────┬────────────────┘
+               │
+               ▼
+┌───────────────────────────────┐
+│ Amazon API Gateway (HTTP API) │
+│  • /cards, /top3, /seed       │
+└──────────────┬────────────────┘
+               │
+               ▼
+┌───────────────────────────────┐
+│     AWS Lambda (Python 3.13)  │
+│  app.lambda_handler           │
+└──────────────┬────────────────┘
+               │
+               ▼
+┌───────────────────────────────┐
+│     Amazon DynamoDB Table     │
+│   PK (player), SK (year)      │
+└───────────────────────────────┘
+```
 
 ---
 
-## 🧪 Phase 6 — Testing
-**Goal:** Verify local and cloud functionality.
+## 🚀 Deployment Instructions
 
-- [ ] Add lightweight unit tests for key building and routing logic  
-- [ ] Add integration tests for listing and detail endpoints  
-- [ ] Verify data appears correctly in DynamoDB after seeding  
-- [ ] Commit: added unit and integration tests
+```bash
+sam build
+sam deploy --guided
+```
 
----
+Choose:
+- Stack name: `serverless-retail-api`
+- AWS Region: `us-west-1`
+- Profile: `serverless-retail-api-user`
 
-## 📊 Phase 7 — Observability & Logging
-**Goal:** Add professional-grade monitoring.
+Once deployed, retrieve the API endpoint:
 
-- [ ] Use structured JSON logs (requestId, path, latency, result)  
-- [ ] Confirm logs stream to CloudWatch  
-- [ ] Optionally set simple alarms for 5XX errors  
-- [ ] Commit: enable structured logging and observability
-
----
-
-## 🧾 Phase 8 — Documentation & Cost Notes
-**Goal:** Make the README clear and recruiter-ready.
-
-- [ ] Explain architecture (SAM, Lambda, HTTP API, DynamoDB)  
-- [ ] Document endpoints and expected JSON responses  
-- [ ] Include monthly cost note (≈ $0 at low traffic)  
-- [ ] Add deployment and testing instructions  
-- [ ] Commit: expanded README with architecture and cost details
+```bash
+aws cloudformation describe-stacks \
+  --stack-name serverless-retail-api \
+  --query "Stacks[0].Outputs"
+```
 
 ---
 
-## 🌟 Phase 9 — Final Deployment & Portfolio Polish
-**Goal:** Prepare for public viewing.
+## 🔗 API Endpoints
 
-- [ ] Deploy final version  
-- [ ] Verify all endpoints and data integrity  
-- [ ] Add `/players` or `/cards/search` optional route  
-- [ ] Add screenshots or usage examples  
-- [ ] Commit: finalize project for portfolio showcase
-
----
-
-## 🚀 Optional Enhancements (Future)
-- [ ] Add query filters (year, brand, grader)  
-- [ ] Add search endpoint  
-- [ ] Add lightweight front-end or dashboard  
-- [ ] Add USD/JPY price conversions  
-- [ ] Extend dataset to NPB rookies or other regions  
+| Method | Route | Auth | Description |
+|:------:|:------|:----:|:-------------|
+| `GET` | `/hello` | ❌ | Health check endpoint |
+| `GET` | `/cards` | ❌ | Returns all player cards |
+| `GET` | `/cards/{cardId}` | ❌ | Retrieves card details by ID |
+| `GET` | `/cards/top3` | ❌ | Lists top 3 rookie cards |
+| `POST` | `/cards/seed` | ✅ Cognito | Seeds the database with sample records |
 
 ---
 
-## 🏁 Summary
-This project demonstrates:
-- AWS SAM (Infrastructure as Code)
-- Lambda + HTTP API design
-- DynamoDB key modeling and GSIs
-- JWT authorization
-- Testing, logging, and cost awareness
-- Clean documentation and a unique cultural dataset
+## 📦 Example Responses
+
+### ✅ GET `/cards`
+```json
+[
+  {
+    "player": "Shohei Ohtani",
+    "team": "Los Angeles Dodgers",
+    "rookieYear": 2013
+  },
+  {
+    "player": "Yu Darvish",
+    "team": "San Diego Padres",
+    "rookieYear": 2005
+  }
+]
+```
+
+### ✅ GET `/cards/top3`
+```json
+[
+  { "player": "Shohei Ohtani", "ranking": 1 },
+  { "player": "Seiya Suzuki", "ranking": 2 },
+  { "player": "Kodai Senga", "ranking": 3 }
+]
+```
+
+### ✅ POST `/cards/seed`
+**Headers:**
+```
+Authorization: Bearer <Cognito JWT Token>
+```
+**Response:**
+```json
+{ "message": "Cards seeded successfully!" }
+```
+
+---
+
+## 🧭 Monitoring & Observability
+
+### 🔹 Lambda Duration (Cold Start vs Warm Invocations)
+*Screenshot: Lambda console “Monitoring” tab*
+
+![Lambda Duration Graph](./Screenshots/LambdaMonitoringTabDuration.png)
+
+---
+
+### 🔹 API Gateway Latency Metrics
+*Screenshot: CloudWatch → Metrics → ApiGateway → Latency*
+
+![API Latency Graph](./Screenshots/Latency.png)
+
+---
+
+### 🔹 Integration Latency (Backend processing time)
+*Screenshot: CloudWatch → Metrics → ApiGateway → IntegrationLatency*
+
+![Integration Latency Graph](./Screenshots/IntegrationLatency.png)
+
+---
+
+### 🔹 CloudWatch Logs Insights Query Results
+*Screenshot: CloudWatch Logs → Insights query for latencyMs, status, route*
+
+![CloudWatch Logs Insights Result](./Screenshots/CloudWatchLogsInsightsResult.png)
+
+---
+
+## 🧩 Operational Intelligence
+
+**CloudWatch Alarms:**  
+- Trigger: `5XXError ≥ 1` within 5 minutes  
+- Action: SNS Email → `serverless-retail-api-alerts` topic  
+
+**SNS Subscription:**  
+Email-based alert tested and verified with sample message.  
+**State:** `OK`
+
+---
+
+## 💰 Cost Estimate
+
+| Service | Tier | Monthly Cost (est.) |
+|----------|------|---------------------|
+| Lambda (100 req/day) | Free | ~$0.00 |
+| API Gateway (HTTP) | Free | ~$0.01 |
+| DynamoDB (Pay-per-request) | Free | ~$0.03 |
+| CloudWatch Logs | Free | ~$0.01 |
+| **Total** | | **≈ $0.05/month** |
+
+---
+
+## 📚 Skills Demonstrated
+
+- Infrastructure as Code (AWS SAM)
+- Serverless API design with Cognito JWT authentication
+- DynamoDB schema modeling (PK/SK)
+- CloudWatch Logs & Metrics Insights
+- SNS Alarms for real-time monitoring
+- Cost-aware cloud architecture
+- Python Lambda development
+- GitHub-ready documentation with visual observability
+
+---
+
+## 🌟 Future Enhancements
+
+- Add `/players` search endpoint for broader queries  
+- Introduce AWS X-Ray tracing visualization  
+- Optionally deploy via CI/CD pipeline (GitHub Actions + SAM)  
+- Cache DynamoDB reads with AWS DAX for sub-millisecond latency  
+
+---
+
+## 👨‍💻 Author
+
+**Kenjamin Button**  
+Cloud Developer & AWS Certified Solutions Architect  
+🔗 [kenjaminbutton.com](https://kenjaminbutton.com)
+
+---
+
+> _“Every log line tells a story — this one just happens to end in a successful deploy.”_

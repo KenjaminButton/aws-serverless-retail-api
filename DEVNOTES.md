@@ -109,9 +109,19 @@ A step-by-step roadmap for evolving the AWS SAM Hello World project into a profe
 
 - [x] Use structured JSON logs (requestId, path, latency, result)  
 - [x] Confirm logs stream to CloudWatch  
-- [ ] API Gateway access logs 
-- [ ] Set simple alarms for 5XX errors  
-- [ ] Commit: enable structured logging and observability
+- [x] API Gateway access logs 
+- [x] Set simple alarms for 5XX errors  
+- [x] Commit: enable structured logging and observability
+
+| Step    | Focus                                             | What You’ll Learn / Show                                                        |
+| ------- | ------------------------------------------------- | ------------------------------------------------------------------------------- |
+| **8.1** | **Measure baseline performance**                  | Use CloudWatch Metrics + Logs Insights to establish avg latency & memory.       |
+| **8.2** | **Optimize Lambda configuration**                 | Tune memory size (and thus CPU) + timeout + environment reuse.                  |
+| **8.3** | **Add DynamoDB indexes or caching (optional)**    | Use a GSI or DAX if query patterns justify it; show cost/performance reasoning. |
+| **8.4** | **Enable CloudWatch Metrics for cost visibility** | Explore AWS Cost Explorer and Lambda cost per 100 ms.                           |
+| **8.5** | **Document results**                              | “Latency dropped x %, estimated monthly cost ≈ $ y.” + screenshots.             |
+
+
 
 ## 🧾 Phase 8 — Documentation & Cost Notes
 **Goal:** Make the README clear and recruiter-ready.
@@ -123,6 +133,9 @@ A step-by-step roadmap for evolving the AWS SAM Hello World project into a profe
 - [ ] Commit: expanded README with architecture and cost details
 
 ---
+
+
+
 
 ## 🌟 Phase 9 — Final Deployment & Portfolio Polish
 **Goal:** Prepare for public viewing.
